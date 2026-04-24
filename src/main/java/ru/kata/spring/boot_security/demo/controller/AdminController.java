@@ -2,7 +2,6 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,7 +16,7 @@ import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminController {
     private final UserService userService;
     private final RoleService roleService;
@@ -29,42 +28,43 @@ public class AdminController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public String adminPage(Model model, @AuthenticationPrincipal User currentUser) {
-        model.addAttribute("users", userService.getUsers());
+    public String adminPage(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
         return "admin";
     }
 
     @GetMapping("/add")
-    @PreAuthorize("hasRole('ADMIN')")
     public String showAddForm(Model model) {
-        model.addAttribute("user", new User());
+        model.addAttribute("user", new CreateUserRequest());
         model.addAttribute("allRoles", roleService.getAllRoles());
         return "add";
     }
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String addUser(@Valid CreateUserRequest request, BindingResult result) {
+    public String addUser(@Valid @ModelAttribute("user") CreateUserRequest request, BindingResult result) {
         if (result.hasErrors()) {
             return "add";
         }
-        userService.addUser(request);
+        userService.createUser(request);
         return "redirect:/admin";
     }
 
     @GetMapping("/edit/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public String showEditForm(@PathVariable("id") Long id, Model model) {
-        User user = userService.getUserWithRoles(id);
+        User user = userService.getUserById(id);
+        if (user == null) {
+            return "redirect:/admin";
+        }
         model.addAttribute("user", user);
         model.addAttribute("allRoles", roleService.getAllRoles());
         return "edit";
     }
 
     @PostMapping("/edit")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String updateUser(@Valid UpdateUserRequest request) {
+    public String updateUser(@Valid @ModelAttribute UpdateUserRequest request, BindingResult result) {
+        if (result.hasErrors()) {
+            return "edit";
+        }
         userService.updateUser(request);
         return "redirect:/admin";
     }

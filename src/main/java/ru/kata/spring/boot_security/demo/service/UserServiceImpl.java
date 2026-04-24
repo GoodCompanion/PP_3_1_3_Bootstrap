@@ -1,6 +1,7 @@
 package ru.kata.spring.boot_security.demo.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,10 +12,9 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleDao;
 import ru.kata.spring.boot_security.demo.repository.UserDao;
 
-import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -32,65 +32,42 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void addUser(User user) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        userDao.save(user);
-    }
-
-    @Override
-    @Transactional
-    public void addUser(CreateUserRequest request) {
+    public void createUser(CreateUserRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setName(request.getName());
         user.setSurname(request.getSurname());
         user.setAge(request.getAge());
+
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            Set<Role> roles = roleDao.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
+            Set<Role> roles = new HashSet<>(roleDao.findAllById(request.getRoleIds()));
             user.setRoles(roles);
         }
+
         userDao.save(user);
     }
 
     @Override
-    public User getUser(Long id) {
-        return userDao.findById(id).orElse(null);
+    public User getUserById(Long id) {
+        return userDao.findByIdWithRoles(id).orElse(null);
+    }
+
+
+    @Override
+    public User getUserByUsername(String username) {
+        return userDao.findByUsernameWithRoles(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Override
-    public User findByUsername(String username) {
-        return userDao.findByUsernameWithRoles(username).orElse(null);
-    }
-
-    @Override
-    public User getUserWithRoles(Long id) {
-        return userDao.findByIdWithRoles(id).orElseThrow(() -> new RuntimeException("User not found: " + id));
-    }
-
-    @Override
-    public List<User> getUsers() {
+    public List<User> getAllUsers() {
         return userDao.findAllWithRoles();
     }
 
     @Override
     @Transactional
-    public void updateUser(User user) {
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            if (!user.getPassword().startsWith("$2a$")) {
-                user.setPassword(passwordEncoder.encode(user.getPassword()));
-            }
-        } else {
-            User existingUser = getUser(user.getId());
-            user.setPassword(existingUser.getPassword());
-        }
-        userDao.save(user);
-    }
-
-    @Override
-    @Transactional
     public void updateUser(UpdateUserRequest request) {
-        User user = userDao.findById(request.getId()).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userDao.findByIdWithRoles(request.getId()).orElseThrow(RuntimeException::new);
 
         user.setUsername(request.getUsername());
 
@@ -102,10 +79,15 @@ public class UserServiceImpl implements UserService {
         user.setSurname(request.getSurname());
         user.setAge(request.getAge());
 
-        if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
-            Set<Role> roles = roleDao.findAllById(request.getRoleIds()).stream().collect(Collectors.toSet());
-            user.setRoles(roles);
+        if (request.getRoleIds() != null) {
+            if (request.getRoleIds().isEmpty()) {
+                user.setRoles(new HashSet<>());
+            } else {
+                Set<Role> roles = new HashSet<>(roleDao.findAllById(request.getRoleIds()));
+                user.setRoles(roles);
+            }
         }
+
         userDao.save(user);
     }
 

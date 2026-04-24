@@ -22,6 +22,18 @@ public class SuccessUserHandler implements AuthenticationSuccessHandler {
         } else if (roles.contains("ROLE_USER")) {
             String username = authentication.getName();
             httpServletResponse.sendRedirect("/user/" + username);
+        } else {
+            httpServletResponse.sendRedirect("/access-denied");
         }
+    }
+
+    public String determineTargetUrl(Authentication authentication) {
+        Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
+        if (roles.contains("ROLE_ADMIN")) {
+            return "/admin";
+        } else if (roles.contains("ROLE_USER")) {
+            return "/user/" + authentication.getName();
+        }
+        return "/login";
     }
 }

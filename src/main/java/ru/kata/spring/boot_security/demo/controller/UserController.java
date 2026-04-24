@@ -2,11 +2,13 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import ru.kata.spring.boot_security.demo.configs.SuccessUserHandler;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
@@ -14,10 +16,12 @@ import ru.kata.spring.boot_security.demo.service.UserService;
 public class UserController {
 
     UserService userService;
+    SuccessUserHandler successUserHandler;
 
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, SuccessUserHandler successUserHandler) {
         this.userService = userService;
+        this.successUserHandler = successUserHandler;
     }
 
     @GetMapping("/login")
@@ -26,25 +30,20 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public String home(@AuthenticationPrincipal User currentUser) {
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-        if (currentUser.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
-            return "redirect:/admin";
-        }
-        return "redirect:/user/" + currentUser.getUsername();
+    public String home(Authentication authentication) {
+        return "redirect:" + successUserHandler.determineTargetUrl(authentication);
     }
 
     @GetMapping("/user/{username}")
-    @PreAuthorize("#username == authentication.name or hasRole('ADMIN')")
+    @PreAuthorize("#username == authentication.name or hasAuthority('ROLE_ADMIN')")
     public String userPage(@PathVariable("username") String username, Model model) {
-        User user = userService.findByUsername(username);
-        if (user == null) {
+        try {
+            User user = userService.getUserByUsername(username);
+            model.addAttribute("user", user);
+            return "user";
+        } catch (UsernameNotFoundException e) {
             return "redirect:/";
         }
-        model.addAttribute("user", user);
-        return "user";
     }
 
     @GetMapping("/access-denied")

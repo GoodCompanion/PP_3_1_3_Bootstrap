@@ -1,13 +1,13 @@
 package ru.kata.spring.boot_security.demo.initialization;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.repository.RoleDao;
 import ru.kata.spring.boot_security.demo.repository.UserDao;
-import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.annotation.PostConstruct;
 import java.util.Set;
@@ -16,13 +16,13 @@ import java.util.Set;
 public class DBInitialization {
     private final UserDao userDao;
     private final RoleDao roleDao;
-    private final UserService userService;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public DBInitialization(UserDao userDao, RoleDao roleDao, UserService userService) {
+    public DBInitialization(UserDao userDao, RoleDao roleDao, PasswordEncoder encoder) {
         this.userDao = userDao;
         this.roleDao = roleDao;
-        this.userService = userService;
+        this.passwordEncoder = encoder;
     }
 
     // временные пользователи и роли для теста
@@ -39,9 +39,11 @@ public class DBInitialization {
             }
 
             User admin = new User("admin", "admin", "Владимир", "Калинин", 25, Set.of(adminRole, userRole));
+            admin.setPassword(passwordEncoder.encode(admin.getPassword()));
             User user = new User("user", "user", "Эрик", "Цой", 24, Set.of(userRole));
-            userService.addUser(admin);
-            userService.addUser(user);
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            userDao.save(admin);
+            userDao.save(user);
         }
     }
 }
