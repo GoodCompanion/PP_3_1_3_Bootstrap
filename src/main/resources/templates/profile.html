@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>My Profile</title>
+</head>
+<body>
+<th:block th:fragment="content">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-person-circle me-2"></i>User Profile
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center border-end">
+                            <div class="mb-3">
+                                <div class="avatar-circle mx-auto mb-3">
+                                    <span class="avatar-initials" th:text="${user.name.substring(0,1)} + ${user.surname.substring(0,1)}">US</span>
+                                </div>
+                                <h5 th:text="${user.name} + ' ' + ${user.surname}">Name Surname</h5>
+                                <p class="text-muted">
+                                    <i class="bi bi-person-badge me-1"></i>
+                                    <span th:text="${user.username}">username</span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <div class="info-card p-3 rounded bg-light">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-hash me-1"></i>ID
+                                        </small>
+                                        <span class="fw-bold fs-5" th:text="${user.id}">1</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="info-card p-3 rounded bg-light">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-calendar3 me-1"></i>Age
+                                        </small>
+                                        <span class="fw-bold fs-5" th:text="${user.age}">25</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="info-card p-3 rounded bg-light">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-person me-1"></i>First Name
+                                        </small>
+                                        <span class="fw-bold fs-5" th:text="${user.name}">Name</span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="info-card p-3 rounded bg-light">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-people me-1"></i>Last Name
+                                        </small>
+                                        <span class="fw-bold fs-5" th:text="${user.surname}">Surname</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="info-card p-3 rounded bg-light">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-envelope me-1"></i>Username
+                                        </small>
+                                        <span class="fw-bold" th:text="${user.username}">username</span>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="info-card p-3 rounded bg-light">
+                                        <small class="text-muted d-block">
+                                            <i class="bi bi-shield-check me-1"></i>Roles
+                                        </small>
+                                        <div class="mt-1">
+                                            <span class="badge bg-primary me-1"
+                                                  th:each="role : ${user.roles}"
+                                                  th:text="${role.name}">ROLE</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</th:block>
+</body>
+</html>

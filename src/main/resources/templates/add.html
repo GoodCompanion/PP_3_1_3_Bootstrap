@@ -1,181 +1,88 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <title>Добавление пользователя</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 500px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            padding: 30px;
-        }
-
-        h2 {
-            color: #333;
-            margin-bottom: 25px;
-            text-align: center;
-            font-size: 24px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #555;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-            box-sizing: border-box;
-            transition: border-color 0.3s;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .roles-group {
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            padding: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-            background: #fafafa;
-        }
-
-        .role-item {
-            margin-bottom: 10px;
-        }
-
-        .role-item input {
-            width: auto;
-            margin-right: 8px;
-        }
-
-        .role-item label {
-            display: inline;
-            font-weight: normal;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 24px;
-            font-size: 14px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            text-decoration: none;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            min-width: 120px;
-            font-weight: bold;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
-        }
-
-        .btn-back {
-            background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
-            color: white;
-        }
-
-        .btn-back:hover {
-            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
-        }
-
-        .buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 25px;
-        }
-    </style>
+    <title>Add User</title>
 </head>
 <body>
-<div class="container">
-    <h2>➕ Добавление пользователя</h2>
+<th:block th:fragment="content">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Add New User</h4>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/admin/users/add}" method="post" th:object="${user}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username"
+                                   th:field="*{username}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('username')}">
+                                <span th:errors="*{username}">Error</span>
+                            </div>
+                        </div>
 
-    <form th:action="@{/admin/add}" method="post">
-        <div class="form-group">
-            <label>👤 Логин:</label>
-            <input type="text" name="username" placeholder="Введите логин" required>
-        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password"
+                                   th:field="*{password}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('password')}">
+                                <span th:errors="*{password}">Error</span>
+                            </div>
+                        </div>
 
-        <div class="form-group">
-            <label>🔒 Пароль:</label>
-            <input type="password" name="password" placeholder="Введите пароль" required>
-        </div>
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="name"
+                                   th:field="*{name}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('name')}">
+                                <span th:errors="*{name}">Error</span>
+                            </div>
+                        </div>
 
-        <div class="form-group">
-            <label>📛 Имя:</label>
-            <input type="text" name="name" placeholder="Введите имя" required>
-        </div>
+                        <div class="mb-3">
+                            <label for="surname" class="form-label">Surname</label>
+                            <input type="text" class="form-control" id="surname"
+                                   th:field="*{surname}" required>
+                            <div class="text-danger" th:if="${#fields.hasErrors('surname')}">
+                                <span th:errors="*{surname}">Error</span>
+                            </div>
+                        </div>
 
-        <div class="form-group">
-            <label>📛 Фамилия:</label>
-            <input type="text" name="surname" placeholder="Введите фамилию" required>
-        </div>
+                        <div class="mb-3">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="number" class="form-control" id="age"
+                                   th:field="*{age}" min="0" max="150">
+                            <div class="text-danger" th:if="${#fields.hasErrors('age')}">
+                                <span th:errors="*{age}">Error</span>
+                            </div>
+                        </div>
 
-        <div class="form-group">
-            <label>🎂 Возраст:</label>
-            <input type="number" name="age" placeholder="Введите возраст" required min="0" max="150">
-        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Roles</label>
+                            <div th:each="role : ${allRoles}">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox"
+                                           th:value="${role.id}"
+                                           name="roleIds"
+                                           th:id="'role_' + ${role.id}">
+                                    <label class="form-check-label" th:for="'role_' + ${role.id}">
+                                        <span th:text="${role.name}">ROLE</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
 
-        <div class="form-group">
-            <label>🔑 Роли:</label>
-            <div class="roles-group">
-                <div th:each="role : ${allRoles}" class="role-item">
-                    <input type="checkbox" name="roleIds" th:value="${role.id}" :id="'role_' + ${role.id}">
-                    <label th:for="'role_' + ${role.id}" th:text="${role.name}">ROLE_USER</label>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-plus-circle"></i> Add User
+                        </button>
+                        <button type="button" class="btn btn-secondary"
+                                onclick="loadPage('users')">Cancel</button>
+                    </form>
                 </div>
             </div>
         </div>
-
-        <div class="buttons">
-            <button type="submit" class="btn btn-primary">💾 Сохранить</button>
-            <a th:href="@{/admin}" class="btn btn-back">↩️ Назад</a>
-        </div>
-    </form>
-</div>
+    </div>
+</th:block>
 </body>
 </html>

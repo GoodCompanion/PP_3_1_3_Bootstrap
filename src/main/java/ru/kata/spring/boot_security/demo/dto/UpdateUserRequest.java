@@ -1,24 +1,25 @@
 package ru.kata.spring.boot_security.demo.dto;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.*;
 import java.util.Set;
 
 public class UpdateUserRequest {
     @NotNull
     private Long id;
 
-    @NotBlank
+    @NotBlank(message = "Логин обязателен")
+    @Size(min = 1, max = 50)
     private String username;
 
+    @Size(max = 50)
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "Имя обязательно")
+    @Size(min = 1)
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "Фамилия обязательна")
+    @Size(min = 1)
     private String surname;
 
     @Min(0)

@@ -15,6 +15,7 @@ import ru.kata.spring.boot_security.demo.repository.UserDao;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -33,6 +34,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createUser(CreateUserRequest request) {
+        validateUsernameUniquenessForCreation(request.getUsername());
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -53,7 +55,6 @@ public class UserServiceImpl implements UserService {
         return userDao.findByIdWithRoles(id).orElse(null);
     }
 
-
     @Override
     public User getUserByUsername(String username) {
         return userDao.findByUsernameWithRoles(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
@@ -68,6 +69,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateUser(UpdateUserRequest request) {
         User user = userDao.findByIdWithRoles(request.getId()).orElseThrow(RuntimeException::new);
+        validateUsernameUniqueness(request.getUsername(), user.getId());
 
         user.setUsername(request.getUsername());
 
@@ -93,7 +95,55 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public void deleteUser(Long id) {
+    public boolean deleteUser(Long id, String currentUsername) {
+        User userToDelete = userDao.findByIdWithRoles(id).orElse(null);
+        if (userToDelete == null) {
+            return false;
+        }
         userDao.deleteById(id);
+        return userToDelete.getUsername().equals(currentUsername);
+    }
+
+    private void validateUsernameUniqueness(String username, Long currentId) {
+        userDao.findByUsername(username).ifPresent(existingUser -> {
+            if (!existingUser.getId().equals(currentId)) {
+                throw new RuntimeException("Username is already taken");
+            }
+        });
+    }
+
+    private void validateUsernameUniquenessForCreation(String username) {
+        userDao.findByUsername(username).ifPresent(existingUser -> {
+            throw new RuntimeException("Username is already taken");
+        });
+    }
+
+    @Override
+    public CreateUserRequest convertToCreateRequest(User user) {
+        CreateUserRequest request = new CreateUserRequest();
+        request.setUsername(user.getUsername());
+        request.setName(user.getName());
+        request.setSurname(user.getSurname());
+        request.setAge(user.getAge());
+
+        if (user.getRoles() != null) {
+            request.setRoleIds(user.getRoles().stream().map(Role::getId).collect(Collectors.toSet()));
+        }
+        return request;
+    }
+
+    @Override
+    public UpdateUserRequest convertToUpdateRequest(User user) {
+        UpdateUserRequest request = new UpdateUserRequest();
+        request.setId(user.getId());
+        request.setUsername(user.getUsername());
+        request.setName(user.getName());
+        request.setSurname(user.getSurname());
+        request.setAge(user.getAge());
+
+        if (user.getRoles() != null) {
+            request.setRoleIds(user.getRoles().stream().map(Role::getId).collect(Collectors.toSet()));
+        }
+        return request;
     }
 }

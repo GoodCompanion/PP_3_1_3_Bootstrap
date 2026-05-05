@@ -29,19 +29,23 @@ public class DBInitialization {
     @PostConstruct
     @Transactional
     public void init() {
-        if (userDao.count() == 0) {
+        if (roleDao.count() == 0) {
             Role adminRole = new Role("ROLE_ADMIN");
             Role userRole = new Role("ROLE_USER");
+            roleDao.save(adminRole);
+            roleDao.save(userRole);
+        }
 
-            if (roleDao.count() == 0) {
-                roleDao.save(adminRole);
-                roleDao.save(userRole);
-            }
+        if (userDao.count() == 0) {
+            Role adminRole = roleDao.findByName("ROLE_ADMIN").get(0);
+            Role userRole = roleDao.findByName("ROLE_USER").get(0);
 
             User admin = new User("admin", "admin", "Владимир", "Калинин", 25, Set.of(adminRole, userRole));
             admin.setPassword(passwordEncoder.encode(admin.getPassword()));
+
             User user = new User("user", "user", "Эрик", "Цой", 24, Set.of(userRole));
             user.setPassword(passwordEncoder.encode(user.getPassword()));
+
             userDao.save(admin);
             userDao.save(user);
         }

@@ -2,6 +2,8 @@ package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -12,6 +14,8 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Controller
@@ -27,53 +31,76 @@ public class AdminController {
         this.roleService = roleService;
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public String adminPage(Model model) {
         model.addAttribute("users", userService.getAllUsers());
-        return "admin";
+        model.addAttribute("allRoles", roleService.getAllRoles());
+        model.addAttribute("viewMode", "admin");
+        return "layout";
     }
 
-    @GetMapping("/add")
-    public String showAddForm(Model model) {
+    @GetMapping("/users-content")
+    public String usersContent(Model model) {
+        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("allRoles", roleService.getAllRoles());
+        model.addAttribute("viewMode", "admin");
+        return "users :: content";
+    }
+
+    @GetMapping("/users/add-content")
+    public String addUserContent(Model model) {
         model.addAttribute("user", new CreateUserRequest());
         model.addAttribute("allRoles", roleService.getAllRoles());
-        return "add";
+        return "add :: content";
     }
 
-    @PostMapping("/add")
-    public String addUser(@Valid @ModelAttribute("user") CreateUserRequest request, BindingResult result) {
+    @PostMapping("/users/add")
+    public String addUser(@Valid @ModelAttribute("user") CreateUserRequest request,
+                          BindingResult result,
+                          Model model) {
         if (result.hasErrors()) {
-            return "add";
+            model.addAttribute("allRoles", roleService.getAllRoles());
+            return "layout";
         }
         userService.createUser(request);
-        return "redirect:/admin";
+        return "redirect:/admin/users";
     }
 
-    @GetMapping("/edit/{id}")
-    public String showEditForm(@PathVariable("id") Long id, Model model) {
+    @GetMapping("/users/edit/{id}")
+    public String showEditForm(@PathVariable Long id, Model model) {
         User user = userService.getUserById(id);
         if (user == null) {
-            return "redirect:/admin";
+            return "redirect:/admin/users";
         }
-        model.addAttribute("user", user);
+        UpdateUserRequest request = userService.convertToUpdateRequest(user);
+        model.addAttribute("user", request);
         model.addAttribute("allRoles", roleService.getAllRoles());
         return "edit";
     }
 
-    @PostMapping("/edit")
-    public String updateUser(@Valid @ModelAttribute UpdateUserRequest request, BindingResult result) {
+    @PostMapping("/users/edit")
+    public String editUser(@Valid @ModelAttribute("user") UpdateUserRequest request,
+                           BindingResult result,
+                           Model model) {
         if (result.hasErrors()) {
-            return "edit";
+            model.addAttribute("allRoles", roleService.getAllRoles());
+            return "edit :: .edit-form-container";
         }
         userService.updateUser(request);
-        return "redirect:/admin";
+        return "edit :: .edit-form-container";
     }
 
-    @PostMapping("/delete/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public String deleteUser(@PathVariable("id") Long id) {
-        userService.deleteUser(id);
-        return "redirect:/admin";
+    @PostMapping("/users/delete/{id}")
+    @ResponseBody
+    public String deleteUser(@PathVariable Long id,
+                             Authentication authentication,
+                             HttpServletRequest request,
+                             HttpServletResponse response) {
+        if (userService.deleteUser(id, authentication.getName())) {
+            new SecurityContextLogoutHandler().logout(request, response, authentication);
+            return "self-deleted";
+        }
+        return "success";
     }
 }
 

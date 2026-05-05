@@ -1,9 +1,6 @@
 package ru.kata.spring.boot_security.demo.dto;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 import java.util.Set;
 
 public class CreateUserRequest {
@@ -27,6 +24,7 @@ public class CreateUserRequest {
     @Max(value = 150)
     private int age;
 
+    @NotNull(message = "Выберите хотя бы одну роль")
     private Set<Long> roleIds;
 
     public String getUsername() {

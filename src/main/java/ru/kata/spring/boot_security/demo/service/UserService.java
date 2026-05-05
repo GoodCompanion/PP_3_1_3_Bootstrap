@@ -16,5 +16,8 @@ public interface UserService {
 
     void updateUser(UpdateUserRequest request);
 
-    void deleteUser(Long id);
+    boolean deleteUser(Long id, String currentUsername);
+
+    CreateUserRequest convertToCreateRequest(User user);
+    UpdateUserRequest convertToUpdateRequest(User user);
 }
