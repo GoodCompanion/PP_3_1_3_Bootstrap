@@ -34,7 +34,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void createUser(CreateUserRequest request) {
-        validateUsernameUniquenessForCreation(request.getUsername());
+        if (userDao.findByUsername(request.getUsername()).isPresent()) {
+            throw new RuntimeException("Пользователь с таким логином уже существует");
+        }
         User user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -109,12 +111,6 @@ public class UserServiceImpl implements UserService {
             if (!existingUser.getId().equals(currentId)) {
                 throw new RuntimeException("Username is already taken");
             }
-        });
-    }
-
-    private void validateUsernameUniquenessForCreation(String username) {
-        userDao.findByUsername(username).ifPresent(existingUser -> {
-            throw new RuntimeException("Username is already taken");
         });
     }
 

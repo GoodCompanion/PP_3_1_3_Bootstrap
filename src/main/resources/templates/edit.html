@@ -69,7 +69,6 @@
                     </label>
                 </div>
             </div>
-            <!-- Добавляем отображение ошибки для roleIds -->
             <div class="text-danger mt-2" th:if="${#fields.hasErrors('roleIds')}">
                 <span th:errors="*{roleIds}">Error</span>
             </div>

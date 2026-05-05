@@ -333,7 +333,48 @@
             } else {
                 $('.admin-actions-cell').removeClass('visible');
             }
+
+            bindAddFormSubmit();
         });
+    }
+    function bindAddFormSubmit() {
+        var addForm = $('form[action="/admin/users/add"]');
+
+        if (addForm.length > 0) {
+            addForm.off('submit').on('submit', function(e) {
+                e.preventDefault();
+
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/admin/users/add',
+                    data: formData,
+                    success: function(response) {
+                        if ($(response).find('.text-danger').length > 0 &&
+                            $(response).find('form').length > 0) {
+                            $('#mainContent').html(response);
+                            bindAddFormSubmit();
+                        } else {
+                            loadPage('users');
+
+                            $('#contentTabs .tab-button').removeClass('active');
+                            $('#contentTabs .tab-button[data-page="users"]').addClass('active');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error adding user:', error);
+
+                        if (xhr.responseText && xhr.responseText.includes('<form')) {
+                            $('#mainContent').html(xhr.responseText);
+                            bindAddFormSubmit();
+                        } else {
+                            alert('Error adding user. Please try again.');
+                        }
+                    }
+                });
+            });
+        }
     }
 
     function editUser(userId) {
@@ -357,13 +398,10 @@
                     url: '/admin/users/edit',
                     data: formData,
                     success: function(response) {
-                        // Проверяем, есть ли в ответе ошибки валидации
                         if ($(response).find('.text-danger').length > 0 ||
                             $(response).find('.is-invalid').length > 0) {
-                            // Если есть ошибки, обновляем содержимое формы
                             $('#editModalBody').html(response);
                         } else {
-                            // Если ошибок нет, закрываем модальное окно и обновляем список
                             editModal.hide();
                             var activeTab = $('#contentTabs .tab-button.active').data('page') || 'users';
                             loadPage(activeTab);
@@ -427,7 +465,7 @@
             $.ajax({
                 type: 'POST',
                 url: deleteUrl,
-                data: formData,  // Важно: отправляем данные формы с CSRF-токеном
+                data: formData,
                 success: function(response) {
                     deleteModal.hide();
                     if (response === 'self-deleted') {

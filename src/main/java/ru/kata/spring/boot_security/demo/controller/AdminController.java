@@ -60,7 +60,7 @@ public class AdminController {
                           Model model) {
         if (result.hasErrors()) {
             model.addAttribute("allRoles", roleService.getAllRoles());
-            return "layout";
+            return "add :: content";
         }
         userService.createUser(request);
         return "redirect:/admin/users";
