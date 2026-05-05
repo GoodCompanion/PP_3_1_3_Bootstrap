@@ -357,9 +357,13 @@
                     url: '/admin/users/edit',
                     data: formData,
                     success: function(response) {
-                        if (response.includes('text-danger')) {
+                        // Проверяем, есть ли в ответе ошибки валидации
+                        if ($(response).find('.text-danger').length > 0 ||
+                            $(response).find('.is-invalid').length > 0) {
+                            // Если есть ошибки, обновляем содержимое формы
                             $('#editModalBody').html(response);
                         } else {
+                            // Если ошибок нет, закрываем модальное окно и обновляем список
                             editModal.hide();
                             var activeTab = $('#contentTabs .tab-button.active').data('page') || 'users';
                             loadPage(activeTab);
@@ -367,11 +371,7 @@
                     },
                     error: function(xhr, status, error) {
                         console.error('Error updating user:', error);
-                        if (xhr.responseText && xhr.responseText.includes('<form')) {
-                            $('#editModalBody').html(xhr.responseText);
-                        } else {
-                            alert('Error updating user. Please try again.');
-                        }
+                        alert('Error updating user. Please try again.');
                     }
                 });
             });

@@ -63,11 +63,15 @@
                            th:value="${role.id}"
                            name="roleIds"
                            th:id="'edit_role_' + ${role.id}"
-                           th:checked="${#lists.contains(user.roleIds, role.id)}">
+                           th:checked="${user.roleIds?.contains(role.id)}">
                     <label class="form-check-label" th:for="'edit_role_' + ${role.id}">
                         <span th:text="${role.name}">ROLE</span>
                     </label>
                 </div>
+            </div>
+            <!-- Добавляем отображение ошибки для roleIds -->
+            <div class="text-danger mt-2" th:if="${#fields.hasErrors('roleIds')}">
+                <span th:errors="*{roleIds}">Error</span>
             </div>
         </div>
 

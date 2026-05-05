@@ -26,6 +26,7 @@ public class UpdateUserRequest {
     @Max(150)
     private int age;
 
+    @NotNull(message = "Выберите хотя бы одну роль")
     private Set<Long> roleIds;
 
     public Long getId() {
