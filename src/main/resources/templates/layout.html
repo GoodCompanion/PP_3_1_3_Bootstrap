@@ -135,16 +135,15 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
         <span class="navbar-brand">
-            <i class="bi bi-shield-lock"></i> User Management System
+            <i class="bi bi-person-circle me-1 text-info"></i>
+            <span class="fw-bold" sec:authentication="principal.username">Username</span>
+            <span class="text-light ms-1">with roles:</span>
+            <span class="badge bg-info ms-1"
+                  th:each="role : ${#authentication.principal.authorities}"
+                  th:text="${role.authority}">ROLE</span>
         </span>
 
-        <div class="d-flex align-items-center text-light">
-            <div class="me-3">
-                <span sec:authentication="principal.username">Username</span>
-                <span class="badge bg-info ms-2"
-                      th:each="role : ${#authentication.principal.authorities}"
-                      th:text="${role.authority}">ROLE</span>
-            </div>
+        <div class="d-flex align-items-center">
             <form th:action="@{/logout}" method="post" class="mb-0">
                 <button type="submit" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-box-arrow-right"></i> Logout
