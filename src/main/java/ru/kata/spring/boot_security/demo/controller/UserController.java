@@ -9,6 +9,8 @@ import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
 
+import java.util.Collections;
+
 @Controller
 public class UserController {
 
@@ -43,7 +45,7 @@ public class UserController {
     @GetMapping("/user/users")
     public String usersList(Model model, @AuthenticationPrincipal User currentUser) {
         model.addAttribute("user", currentUser);
-        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("users", Collections.singletonList(currentUser));
         model.addAttribute("allRoles", roleService.getAllRoles());
         model.addAttribute("viewMode", "user");
         model.addAttribute("isOwner", true);
@@ -53,7 +55,7 @@ public class UserController {
     @GetMapping("/user/users-content")
     public String usersContent(Model model, @AuthenticationPrincipal User currentUser) {
         model.addAttribute("user", currentUser);
-        model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("users", Collections.singletonList(currentUser));
         model.addAttribute("allRoles", roleService.getAllRoles());
         model.addAttribute("viewMode", "user");
         return "users :: content";

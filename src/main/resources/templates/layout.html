@@ -59,7 +59,7 @@
         }
 
         .table th {
-            background-color: #f8f9fa;
+            background-color: #f8f9fa !important;
         }
 
         .table th, .table td {
@@ -330,8 +330,10 @@
 
             if (currentRole === 'ROLE_ADMIN') {
                 $('.admin-actions-cell').addClass('visible');
+                $('#addTab').show();
             } else {
                 $('.admin-actions-cell').removeClass('visible');
+                $('#addTab').hide();
             }
 
             bindAddFormSubmit();
