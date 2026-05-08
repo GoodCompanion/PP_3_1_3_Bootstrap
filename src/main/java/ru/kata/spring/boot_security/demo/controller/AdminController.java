@@ -90,6 +90,12 @@ public class AdminController {
         return "edit :: .edit-form-container";
     }
 
+    @GetMapping("/users/data/{id}")
+    @ResponseBody
+    public User getUserData(@PathVariable Long id) {
+        return userService.getUserById(id);
+    }
+
     @PostMapping("/users/delete/{id}")
     @ResponseBody
     public String deleteUser(@PathVariable Long id,

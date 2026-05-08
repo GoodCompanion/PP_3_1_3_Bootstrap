@@ -67,9 +67,6 @@
             word-wrap: break-word;
         }
 
-        .admin-header {
-        }
-
         .admin-actions-cell {
         }
 
@@ -215,7 +212,7 @@
                 <h5 class="modal-title">Confirm Delete</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" id="deleteModalBody">
                 <p>Are you sure you want to delete this user?</p>
             </div>
             <div class="modal-footer">
@@ -339,6 +336,7 @@
             bindAddFormSubmit();
         });
     }
+
     function bindAddFormSubmit() {
         var addForm = $('form[action="/admin/users/add"]');
 
@@ -418,43 +416,70 @@
         });
     }
 
-    function bindEditFormSubmit() {
-        $('#editUserForm').on('submit', function(e) {
-            e.preventDefault();
-
-            var formData = $(this).serialize();
-
-            $.ajax({
-                type: 'POST',
-                url: '/admin/users/edit',
-                data: formData,
-                success: function(response) {
-                    if (response.includes('text-danger')) {
-                        $('#editModalBody').html(response);
-                        bindEditFormSubmit();
-                    } else {
-                        var editModal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
-                        editModal.hide();
-                        var activeTab = $('#contentTabs .tab-button.active').data('page') || 'users';
-                        loadPage(activeTab);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error updating user:', error);
-                    alert('Error updating user. Please try again.');
-                }
-            });
-        });
-    }
-
     function deleteUser(userId) {
         if (currentRole !== 'ROLE_ADMIN') {
             alert('You need ADMIN role to delete users');
             return;
         }
 
-        var deleteUrl = '/admin/users/delete/' + userId;
-        $('#deleteForm').attr('action', deleteUrl);
+        // Находим строку пользователя в таблице
+        var userRow = $('tr').filter(function() {
+            return $(this).find('td:first').text().trim() == userId;
+        });
+
+        if (userRow.length > 0) {
+            var cells = userRow.find('td');
+            var username = $(cells[1]).text().trim();
+            var name = $(cells[2]).text().trim();
+            var surname = $(cells[3]).text().trim();
+            var age = $(cells[4]).text().trim();
+
+            // Собираем роли
+            var rolesHtml = '';
+            $(cells[5]).find('.badge').each(function() {
+                rolesHtml += '<span class="badge bg-primary me-1">' + $(this).text().trim() + '</span>';
+            });
+
+            var userData = `
+                <div class="card border-danger mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <i class="bi bi-exclamation-triangle"></i> Are you sure you want to delete this user?
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-sm mb-0">
+                            <tr>
+                                <td style="width: 30%;"><strong>ID:</strong></td>
+                                <td>${userId}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Username:</strong></td>
+                                <td>${username}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Имя:</strong></td>
+                                <td>${name}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Фамилия:</strong></td>
+                                <td>${surname}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Возраст:</strong></td>
+                                <td>${age}</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Роли:</strong></td>
+                                <td>${rolesHtml}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            `;
+
+            $('#deleteModalBody').html(userData);
+        }
+
+        $('#deleteForm').attr('action', '/admin/users/delete/' + userId);
 
         var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
         deleteModal.show();
@@ -466,7 +491,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: deleteUrl,
+                url: '/admin/users/delete/' + userId,
                 data: formData,
                 success: function(response) {
                     deleteModal.hide();
@@ -479,8 +504,6 @@
                 },
                 error: function(xhr, status, error) {
                     console.error('Error deleting user:', error);
-                    console.error('Status:', status);
-                    console.error('Response:', xhr.responseText);
                     alert('Error deleting user. Please try again.');
                 }
             });
